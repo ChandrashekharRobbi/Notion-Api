@@ -6,30 +6,37 @@ const notion = new Client({auth: process.env.NOTION_KEY})
 const pokeArray = []
 
 async function getPokemon() {
-  await axios.get("https://pokeapi.co/api/v2/pokemon/2")
-    .then((poke) => {
-    const pokeData = {
-        "name": poke.data.species.name,
-        "number": poke.data.id,
-        "hp": poke.data.stats[0].base_stat,
-        "height": poke.data.height,
-        "weight": poke.data.weight,
-        // "hp": ,
-        "attack": poke.data.stats[1].base_stat,
-        "defense": poke.data.stats[2].base_stat,
-        "special-attack": poke.data.stats[3].base_stat,
-        "special-defense": poke.data.stats[4].base_stat,
-        "speed": poke.data.stats[5].base_stat
-        // "sprite": ,
-        // "artwork": ,
-        // "bulbURL": 
-      }
-    pokeArray.push(pokeData)
-    console.log(`Fetching ${pokeData.name} from PokeAPI`)
+  for (let i = 1 ; i <= 20; i++){
+    await axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`)
+      .then((poke) => {
+        const sprite = (!poke.data.sprites.front_default) ? poke.data.sprites.other['official-artwork'].front_default : poke.data.sprites.front_default
+
+        const pokeData = {
+            "name": poke.data.species.name,
+            "number": poke.data.id,
+            "hp": poke.data.stats[0].base_stat,
+            "height": poke.data.height,
+            "weight": poke.data.weight,
+            // "hp": ,
+            "attack": poke.data.stats[1].base_stat,
+            "defense": poke.data.stats[2].base_stat,
+            "special-attack": poke.data.stats[3].base_stat,
+            "special-defense": poke.data.stats[4].base_stat,
+            "speed": poke.data.stats[5].base_stat,
+            "sprite": poke.data.sprites.front_default,
+            "artwork": poke.data.sprites.other['official-artwork'].front_default,
+            // "sprite": ,
+            // "artwork": ,
+            // "bulbURL": 
+          }
+      pokeArray.push(pokeData)
+      console.log(`Fetching ${pokeData.name} from PokeAPI`)
+    })
+    .catch((error) => {
+      console.log(error)
   })
-  .catch((error) => {
-    console.log(error)
-  })
+  }
+  
   console.log(`lets Create Page in Notion of ${pokeArray[0].name}`)
   createNotionPage()
 }
