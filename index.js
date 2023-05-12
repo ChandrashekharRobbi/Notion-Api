@@ -9,11 +9,31 @@ async function getPokemon() {
   for (let i = 1 ; i <= 20; i++){
     await axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`)
       .then((poke) => {
+      
+        const typesArray = []
+        
         const sprite = (!poke.data.sprites.front_default) ? poke.data.sprites.other['official-artwork'].front_default : poke.data.sprites.front_default
-
+        
+        const processedName = poke.data.species.name.split(/-/).map((name) => {
+            return name[0].toUpperCase() + name.substring(1);
+          }).join(" ")
+          .replace(/^Mr M/,"Mr. M")
+          .replace(/^Mime Jr/,"Mime Jr.")
+          .replace(/^Mr R/,"Mr. R")
+          .replace(/mo O/,"mo-o")
+          .replace(/Porygon Z/,"Porygon-Z")
+          .replace(/Type Null/, "Type: Null")
+          .replace(/Ho Oh/,"Ho-Oh")
+          .replace(/Nidoran F/,"Nidoran♀")
+          .replace(/Nidoran M/,"Nidoran♂")
+          .replace(/Flabebe/,"Flabébé")
+        
+        
+        const bulbURL = `https://bulbapedia.bulbagarden.net/wiki/${processedName.replace(' ', '_')}_(Pokémon)`
         const pokeData = {
-            "name": poke.data.species.name,
+            "name": processedName,
             "number": poke.data.id,
+            "types": typesArray,
             "hp": poke.data.stats[0].base_stat,
             "height": poke.data.height,
             "weight": poke.data.weight,
@@ -23,11 +43,9 @@ async function getPokemon() {
             "special-attack": poke.data.stats[3].base_stat,
             "special-defense": poke.data.stats[4].base_stat,
             "speed": poke.data.stats[5].base_stat,
-            "sprite": poke.data.sprites.front_default,
+            "sprite": sprite,
             "artwork": poke.data.sprites.other['official-artwork'].front_default,
-            // "sprite": ,
-            // "artwork": ,
-            // "bulbURL": 
+            "bulbURL": bulbURL
           }
       pokeArray.push(pokeData)
       console.log(`Fetching ${pokeData.name} from PokeAPI`)
@@ -53,6 +71,18 @@ async function createNotionPage() {
         "type": "database_id",
         "database_id" : process.env.NOTION_DATABASE_ID
       },
+      "icon": {
+        "type": "external",
+        "external": {
+          "url": pokemon.sprite
+        }
+      },
+      "cover": {
+        "type": "external",
+        "external": {
+          "url": pokemon.artwork
+        }
+      },
       "properties" : {
         "Name":{
           "title":[
@@ -66,6 +96,9 @@ async function createNotionPage() {
         },
         "No":{
           "number": pokemon.number
+        },
+        "Type": {
+          "multi_select": pokemon.types
         },
         "HP" : {"number": pokemon.hp },
         "Attack": { "number": pokemon.attack },
